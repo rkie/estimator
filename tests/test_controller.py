@@ -6,7 +6,15 @@ client.testing = True
 def test_index():
 	response = client.get('/')
 	assert response.status == '200 OK'
-	assert response.get_data(as_text = True) == 'Hello, World!'
+	html = response.get_data(as_text = True) 
+	assert '<title>Agile Anonymous Estimation</title>' in html
+	assert 'Let’s Estimate Something' in html
+
+def test_index_contains_bootstrap():
+	response = client.get('/')
+	assert response.status == '200 OK'
+	html = response.get_data(as_text = True) 
+	assert 'bootstrap.min.css' in html
 
 def test_about():
 	response = client.get('/about')
