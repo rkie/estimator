@@ -1,8 +1,5 @@
-from flask import Flask, render_template
-from flask_bootstrap import Bootstrap
-
-app = Flask(__name__)
-bootstrap = Bootstrap(app)
+from flask import render_template
+from estimator import app
 
 @app.route('/')
 def hello():
