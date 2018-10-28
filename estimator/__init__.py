@@ -5,3 +5,4 @@ app = Flask(__name__)
 bootstrap = Bootstrap(app)
 
 from estimator import controllers
+from estimator import rest_controller
