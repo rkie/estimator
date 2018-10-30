@@ -1,15 +1,15 @@
 
 def test_create_group(client):
 	# TODO: Mock the response the service returns to the controller
-	response = client.post('/rest/v1/group/TestGroup')
-	assert response.status == '201 Created'
+	response = client.post('/rest/v1/group/NewGroup')
+	assert response.status == '201 CREATED'
     # TODO: check the content
 	# TODO: verify that the group was created
 
 def test_create_group_name_extsts(client):
 	# TODO: Mock the response - duplicate group
-	response = client.post('/rest/v1/group/TestGroup')
-	assert response.status == '400 Bad request'
+	response = client.post('/rest/v1/group/GroupAlreadyExists')
+	assert response.status == '400 BAD REQUEST'
     # TODO: check the content
 	# TODO: verify that the group was not created
 
