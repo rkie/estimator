@@ -1,4 +1,4 @@
-from flask import json, Response
+from flask import Response
 from estimator import app
 
 @app.route('/rest/v1/group/<groupname>', methods = ['POST'])
