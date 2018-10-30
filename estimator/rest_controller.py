@@ -14,4 +14,8 @@ def create_group(groupname):
 
 @app.route('/rest/v1/group/<groupname>', methods = ['GET'])
 def query_group(groupname):
-	return '{ "groupname" : "' + groupname + '" }'
+	# TODO: implement
+	if groupname == 'TestGroup':
+		return '{ "groupname" : "' + groupname + '" }'
+	else:
+		return Response('{ "message" : "group not found"', 404, mimetype='application/json')

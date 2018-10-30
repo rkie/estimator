@@ -17,3 +17,8 @@ def test_query_group(client):
 	response = client.get('/rest/v1/group/TestGroup')
 	assert response.status == '200 OK'
     # TODO: check the content
+
+def test_query_group_not_found(client):
+	response = client.get('/rest/v1/group/UnknownGroup')
+	assert response.status == '404 NOT FOUND'
+    # TODO: check the content
