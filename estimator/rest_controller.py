@@ -1,21 +1,27 @@
-from flask import json, Response
-from estimator import app
+from flask import jsonify, Response, url_for
+from estimator import app, db
+from database.models import Group
 
 @app.route('/rest/v1/group/<groupname>', methods = ['POST'])
 def create_group(groupname):
-	# TODO: implement
-	if groupname == 'NewGroup':
-		body = { "message" : "Group created" }
-		code = 201
-	else:
+	group = Group.query.filter_by(name=groupname).first()
+	if group:
 		body = { "message" : "Group already exists" }
 		code = 400
-	return Response(json.dumps(body), status=code, mimetype='application/json')
+		return jsonify(body), code
+	else:
+		print("Creating new group {}".format(groupname))
+		group = Group(groupname)
+		db.session.add(group)
+		db.session.commit()
+		body = {}
+		code = 201
+		return jsonify({}), code, {'location': url_for('query_group', groupname=groupname)}
 
 @app.route('/rest/v1/group/<groupname>', methods = ['GET'])
 def query_group(groupname):
-	# TODO: implement
-	if groupname == 'TestGroup':
-		return json.dumps({ "groupname" : groupname })
+	group = Group.query.filter_by(name=groupname).first()
+	if group:
+		return jsonify({ "groupname" : group.name })
 	else:
-		return Response(json.dumps({ "message" : "Group not found"}), 404, mimetype='application/json')
+		return Response(jsonify({ "message" : "Group not found"}), 404, mimetype='application/json')
