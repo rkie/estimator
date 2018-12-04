@@ -1,10 +1,12 @@
 from flask import render_template
-from estimator import app
+from flask import Blueprint
 
-@app.route('/')
+web = Blueprint('web', __name__)
+
+@web.route('/')
 def hello():
 	return render_template('index.html')
 
-@app.route('/about')
+@web.route('/about')
 def about():
 	return "About this site."

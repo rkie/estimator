@@ -1,8 +1,11 @@
 from flask import jsonify, Response, url_for
-from estimator import app, db
+from estimator import db
 from database.models import Group
+from flask import Blueprint
 
-@app.route('/rest/v1/group/<groupname>', methods = ['POST'])
+api = Blueprint('api', __name__)
+
+@api.route('/rest/v1/group/<groupname>', methods = ['POST'])
 def create_group(groupname):
 	group = Group.query.filter_by(name=groupname).first()
 	if group:
@@ -16,9 +19,9 @@ def create_group(groupname):
 		db.session.commit()
 		body = {}
 		code = 201
-		return jsonify({}), code, {'location': url_for('query_group', groupname=groupname)}
+		return jsonify({}), code, {'location': url_for('api.query_group', groupname=groupname)}
 
-@app.route('/rest/v1/group/<groupname>', methods = ['GET'])
+@api.route('/rest/v1/group/<groupname>', methods = ['GET'])
 def query_group(groupname):
 	group = Group.query.filter_by(name=groupname).first()
 	if group:
