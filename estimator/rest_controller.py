@@ -27,4 +27,4 @@ def query_group(groupname):
 	if group:
 		return jsonify({ "groupname" : group.name })
 	else:
-		return Response(jsonify({ "message" : "Group not found"}), 404, mimetype='application/json')
+		return jsonify({ "message" : "Group not found"}), 404, {'mimetype': 'application/json'}
