@@ -1,0 +1,10 @@
+data.sqlite
+.git
+.gitignore
+.pytest_cache
+**/__pycache__/
+**/*.pyc
+.dockerignore
+Dockerfile
+requirements.txt
+tests/

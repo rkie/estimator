@@ -11,5 +11,6 @@ RUN pip install -r prod_requirements.txt
 EXPOSE 5000
 
 ENV FLASK_APP=run.py
+ENV FLASK_CONFIG=default
 
 CMD ["flask", "run", "--host", "0.0.0.0"]
