@@ -1,0 +1,26 @@
+version: '2'
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - /opt/estimator
+    links:
+      - db:mysql
+    container_name: estimator-app-web
+    depends_on:
+      - db
+    environment:
+      ESTIMATOR_PASSWORD: rootpass
+      ESTIMATOR_USER: root
+      ESTIMATOR_DATABASE: estimator
+      ESTIMATOR_DB_HOST: mysql
+  db:
+    image: mysql:5.7
+    restart: always
+    container_name: estimator-app-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: estimator
+      
