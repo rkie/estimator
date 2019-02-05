@@ -4,4 +4,12 @@
 	<div class="container">
 		<h1>Let’s Estimate Something</h1>
 	</div>
+	<div class="container">
+		{% if nickname %}
+			Hello {{ nickname }}.
+		{% else %}
+			{% import "bootstrap/wtf.html" as wtf %}
+			{{ wtf.quick_form(form) }}
+		{% endif %}
+	</div>
 {% endblock %}

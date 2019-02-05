@@ -12,10 +12,12 @@ class Config:
 class DevelopmentConfig(Config):
 	DEBUG = True
 	SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(base_dir, 'data.sqlite')
+	SECRET_KEY = 'Temporary not-very-secret key'
 
 class TestConfig(Config):
 	TESTING = True
 	SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+	SECRET_KEY = 'Temporary not-very-secret key'
 
 class ProductionConfig(Config):
 	DB_USERNAME = os.getenv('ESTIMATOR_USER')
