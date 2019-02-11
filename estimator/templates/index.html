@@ -1,4 +1,5 @@
 {% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
 {% block title %}Agile Anonymous Estimation{% endblock %}
 {% block content %}
 	<div class="container">
@@ -6,9 +7,15 @@
 	</div>
 	<div class="container">
 		{% if nickname %}
-			Hello {{ nickname }}.
+			Hello {{ nickname }}. Here is a list of your groups:
+			<ul>
+				{% for group in groups %}
+					<li>{{ group.name }}</li>
+				{% endfor %}
+			</ul>
+			<h3>To create a new group, enter a name and click the button.</h3>
+			{{ wtf.quick_form(new_group_form, action="creategroup") }}
 		{% else %}
-			{% import "bootstrap/wtf.html" as wtf %}
 			{{ wtf.quick_form(form) }}
 		{% endif %}
 	</div>

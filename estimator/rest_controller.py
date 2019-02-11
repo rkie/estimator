@@ -1,12 +1,13 @@
 from flask import jsonify, Response, url_for
 from estimator import db
-from database.models import Group
+from database.models import Group, User
 from flask import Blueprint
 
 api = Blueprint('api', __name__)
 
 @api.route('/rest/v1/group/<groupname>', methods = ['POST'])
 def create_group(groupname):
+	user = User.query.filter_by(nickname='default').first()
 	group = Group.query.filter_by(name=groupname).first()
 	if group:
 		body = { "message" : "Group already exists" }
@@ -14,7 +15,7 @@ def create_group(groupname):
 		return jsonify(body), code
 	else:
 		print("Creating new group {}".format(groupname))
-		group = Group(groupname)
+		group = Group(groupname, user)
 		db.session.add(group)
 		db.session.commit()
 		body = {}

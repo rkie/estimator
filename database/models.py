@@ -7,8 +7,9 @@ class Group(db.Model):
 	name = db.Column(db.String(32))
 	user = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-	def __init__(self, name):
+	def __init__(self, name, user):
 		self.name = name
+		self.user = user.id
 
 	def __repr__(self):
 		return '<Estimation group: {}>'.format(self.name)

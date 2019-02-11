@@ -1,5 +1,5 @@
 from estimator import create_app, db
-from database.models import Group
+from database.models import Group, User
 import pytest
 
 @pytest.fixture
@@ -8,9 +8,12 @@ def app():
 	app = create_app('test')
 	with app.app_context():
 		db.create_all()
-		test_group = Group('TestGroup')
+		user = User('default')
+		db.session.add(user)
+		user = User.query.filter_by(nickname='default').first()
+		test_group = Group('TestGroup', user)
 		db.session.add(test_group)
-		existing_group = Group('GroupAlreadyExists')
+		existing_group = Group('GroupAlreadyExists', user)
 		db.session.add(existing_group)
 		db.session.commit()
 	return app
@@ -21,3 +24,8 @@ def client(app):
 	client = app.test_client()
 	client.testing = True
 	return client
+
+@pytest.fixture
+def default_user(app):
+	with app.app_context():
+		return User.query.filter_by(nickname='default').first()
