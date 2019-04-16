@@ -7,14 +7,22 @@
 	</div>
 	<div class="container">
 		{% if nickname %}
-			Hello {{ nickname }}. Here is a list of your groups:
+			Hello {{ nickname }}. Here is a list of groups which you created:
 			<ul>
 				{% for group in groups %}
-					<li>{{ group.name }}</li>
+					<li><a href="group/{{ group.id }}">{{ group.name }}</a></li>
 				{% endfor %}
 			</ul>
 			<h3>To create a new group, enter a name and click the button.</h3>
 			{{ wtf.quick_form(new_group_form, action="creategroup") }}
+			{% if other_groups %}
+			<p>You are also a member of these groups</p>
+			<ul>
+				{% for group in other_groups %}
+				<li><a href="group/{{ group.id }}">{{ group.name }}</a></li>
+				{% endfor %}
+			</ul>
+			{% endif %}
 		{% else %}
 			{{ wtf.quick_form(form) }}
 		{% endif %}

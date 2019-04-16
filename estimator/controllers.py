@@ -50,6 +50,15 @@ def create_group():
 	db.session.commit()
 	return redirect(url_for('web.index'))
 
+@web.route('/group/<int:id>', methods=['GET'])
+def view_group(id):
+	group = Group.query.get(id)
+	owner = User.query.get(group.user);
+	nickname = session.get('nickname')
+	if owner.nickname == nickname:
+		return render_template('group-owner.html', group=group)
+	return render_template('group.html', group=group)
+
 @web.route('/about')
 def about():
 	return "About this site."

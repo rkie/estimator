@@ -1,0 +1,43 @@
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% block title %}Agile Anonymous Estimation{% endblock %}
+{% block content %}
+	<div class="container">
+		<h1>Group: {{ group.name }}</h1>
+		<h3>Members</h3>
+		<p> As the creator of this group, you can invite your colleagues to join the group by sending them the following link:</p>
+		<pre>Link to come later</pre>
+		{% if group_members %}
+		<p> The following users have joined you in this group:</p>
+		<ul>
+			{% for member in group_members %}
+			<li>{ member.nickname }</li>
+			{% endfor %}
+		</ul>
+		{% else %}
+		<p> No one has joined your group yet. Send the link above so that they can join. There is no need to provide email addresses.</p>
+		{% endif %}
+	</div>
+	<div class="container">
+		<h3>Issues</h3>
+		<p>Create stories and then ask group members to give an estimate after you discuss the details.</p>
+		{% if issues %}
+			<table>
+				<tr>
+					<th>Story Ref.</th>
+					<th>Description</th>
+					<th>Estimate</th>
+				</tr>
+				{% for issue in issues %}
+				<tr>
+					<td>{{ issue.ref }}</td>>
+					<td>{{ issue.ref }}</td>>
+					<td><em>will give the estimate or a link to start estimation.</em></td>>
+				</tr>
+				{% endfor %}
+			</table>
+		{% else %}
+			You have not created any issues for this group yet.
+		{% endif %}
+	</div>
+{% endblock %}
