@@ -19,10 +19,15 @@ class User(db.Model):
 	"""A user that can create groups and issues for estimation"""
 
 	id = db.Column(db.Integer, primary_key=True)
-	nickname = db.Column(db.String(32), nullable=False)
+	nickname = db.Column(db.String(32))
 
 	def __init__(self, nickname):
 		self.nickname = nickname
 
 	def __repr__(self):
 		return self.nickname
+
+class Membership(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	group_id = db.Column(db.Integer, db.ForeignKey('estimation_group.id'), nullable=False)
+	user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
