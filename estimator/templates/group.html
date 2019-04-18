@@ -9,7 +9,7 @@
 		<p> The following users have joined you in this group:</p>
 		<ul>
 			{% for member in group_members %}
-			<li>{ member.nickname }</li>
+			<li>{{ member }}</li>
 			{% endfor %}
 		</ul>
 		{% else %}

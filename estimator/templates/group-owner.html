@@ -6,12 +6,12 @@
 		<h1>Group: {{ group.name }}</h1>
 		<h3>Members</h3>
 		<p> As the creator of this group, you can invite your colleagues to join the group by sending them the following link:</p>
-		<pre>Link to come later</pre>
+		<pre>{{ join_link }}</pre>
 		{% if group_members %}
 		<p> The following users have joined you in this group:</p>
 		<ul>
 			{% for member in group_members %}
-			<li>{ member.nickname }</li>
+			<li>{{ member }}</li>
 			{% endfor %}
 		</ul>
 		{% else %}

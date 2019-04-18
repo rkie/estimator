@@ -1,7 +1,7 @@
-from flask import render_template, redirect, url_for, session
+from flask import render_template, redirect, url_for, session, request
 from flask import Blueprint
 from forms.forms import NickNameForm, NewGroupForm
-from database.models import User, Group
+from database.models import User, Group, Membership
 from estimator import db
 
 web = Blueprint('web', __name__)
@@ -55,9 +55,59 @@ def view_group(id):
 	group = Group.query.get(id)
 	owner = User.query.get(group.user);
 	nickname = session.get('nickname')
+
+	# make sure the user exists and is logged in
+	active_user = User.query.filter_by(nickname=nickname).first()
+	if active_user == None:
+		return redirect(url_for('web.index'))
+
+	# Check whether this user is a member and send to the error page if not
+	membership = Membership.query.filter_by(group_id=group.id, user_id=active_user.id)
+
+	# Look up the other members of the group to display them on the page
+	members = User.query.join(Membership).filter(Membership.group_id==id).all()
+
+	# return the owner or member template as appropriate
 	if owner.nickname == nickname:
-		return render_template('group-owner.html', group=group)
-	return render_template('group.html', group=group)
+		join_link=url_for("web.join_group", id=id, _external=True)
+		return render_template('group-owner.html', group=group, group_members=members, join_link=join_link)
+	if membership.count() > 0:
+		return render_template('group.html', group=group, group_members=members)
+
+	# return an error if no association with the group
+	error_message = 'You do not have permission to view this group.'
+	back_url = url_for('web.index')
+	return render_template('generic-error.html', error_message=error_message, back_url=back_url), 400
+
+@web.route('/group/<int:id>/join', methods=['GET','POST'])
+def join_group(id):
+	"""Serve page to allow a user to join the group. Also accept post to join the group."""
+
+	# show the error page if the group does not exist
+	group = Group.query.get(id)
+	if group == None:
+		return render_template("generic-error.html", error_message='That group does not exist.')
+
+	# ensure the user must be in the database to allow them to join
+	nickname = session.get('nickname')
+	active_user = User.query.filter_by(nickname=nickname).first()
+	if active_user == None:
+		return redirect(url_for('web.index'))
+
+	# should not join the group more than once
+	if Membership.query.filter_by(user_id=active_user.id, group_id=id).count() > 0:
+		return render_template('generic-error.html', error_message='You are already in this group.')
+
+	# serve a page that shows the group name and a form with the
+	if request.method == 'GET':
+		return render_template('join-group.html', group=group)
+
+	# add the user to the group and redirect to the group page
+	membership = Membership(id, active_user.id)
+	db.session.add(membership)
+	db.session.commit()
+	# redirect to the group page
+	return redirect(url_for('web.view_group', id=id))
 
 @web.route('/about')
 def about():

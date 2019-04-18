@@ -31,3 +31,7 @@ class Membership(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	group_id = db.Column(db.Integer, db.ForeignKey('estimation_group.id'), nullable=False)
 	user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+	def __init__(self, group_id, user_id):
+		self.group_id = group_id
+		self.user_id = user_id
