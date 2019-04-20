@@ -40,4 +40,10 @@
 			You have not created any issues for this group yet.
 		{% endif %}
 	</div>
+	{% if owner_in_group %}
+	<div class="container">
+		<p />
+		<p>You can leave this group but remain as owner if you are not taking part in the estimation. <a href="{{ url_for('web.leave_group', id=group.id) }}">Click here to leave the group.</a></p>
+	<div>
+	{% endif %}
 {% endblock %}

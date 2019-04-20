@@ -35,7 +35,10 @@
 				{% endfor %}
 			</table>
 		{% else %}
-			There are not stories for this group yet.
+			<p>There are not stories for this group yet.</p>
 		{% endif %}
 	</div>
+	<div class="container">
+		<p>You can leave this group and take no further part in the estimation. <a href="{{ url_for('web.leave_group', id=group.id) }}">Click here to leave the group.</a></p>
+	<div>
 {% endblock %}

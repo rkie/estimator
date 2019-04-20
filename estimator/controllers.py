@@ -10,14 +10,17 @@ web = Blueprint('web', __name__)
 def index():
 	nickname = session.get('nickname')
 	groups = []
+	other_groups = []
 	if nickname != None:
 		user = User.query.filter_by(nickname=nickname)
 		if user.count() > 0:
-			groups = Group.query.filter_by(user=user.first().id).all()
+			user_id = user.first().id
+			groups = Group.query.filter_by(user=user_id).all()
+			other_groups = Group.query.join(Membership).filter(Membership.user_id==user_id).all()
 
 	form = NickNameForm()
 	new_group_form = NewGroupForm()
-	return render_template('index.html', form=form, nickname=nickname, groups=groups, new_group_form=new_group_form)
+	return render_template('index.html', form=form, nickname=nickname, groups=groups, new_group_form=new_group_form, other_groups=other_groups)
 
 @web.route('/', methods=['POST'])
 def accept_nickname():
@@ -30,6 +33,7 @@ def accept_nickname():
 @web.route('/creategroup', methods=['POST'])
 def create_group():
 	form = NewGroupForm()
+	id = -1
 	if form.validate_on_submit():
 		nickname = session.get('nickname')
 		user_query = User.query.filter_by(nickname=nickname)
@@ -47,7 +51,13 @@ def create_group():
 		else:
 			group = Group(group_name, user)
 			db.session.add(group)
-	db.session.commit()
+			db.session.flush()
+			print('Flushed session to get id="{}"'.format(group.id))
+			id = group.id
+			membership = Membership(group, user)
+			db.session.add(membership)
+		db.session.commit()
+		return redirect(url_for('web.view_group', id=id))
 	return redirect(url_for('web.index'))
 
 @web.route('/group/<int:id>', methods=['GET'])
@@ -66,11 +76,12 @@ def view_group(id):
 
 	# Look up the other members of the group to display them on the page
 	members = User.query.join(Membership).filter(Membership.group_id==id).all()
-
+	owner_in_group = len([item for item in members if item.nickname == nickname]) == 1
+	print(owner_in_group)
 	# return the owner or member template as appropriate
 	if owner.nickname == nickname:
 		join_link=url_for("web.join_group", id=id, _external=True)
-		return render_template('group-owner.html', group=group, group_members=members, join_link=join_link)
+		return render_template('group-owner.html', group=group, group_members=members, join_link=join_link, owner_in_group=owner_in_group)
 	if membership.count() > 0:
 		return render_template('group.html', group=group, group_members=members)
 
@@ -103,10 +114,35 @@ def join_group(id):
 		return render_template('join-group.html', group=group)
 
 	# add the user to the group and redirect to the group page
-	membership = Membership(id, active_user.id)
+	membership = Membership(group, active_user)
 	db.session.add(membership)
 	db.session.commit()
 	# redirect to the group page
+	return redirect(url_for('web.view_group', id=id))
+
+@web.route('/group/<int:id>/leave', methods=['GET', 'POST'])
+def leave_group(id):
+	print('leaving group {}'.format(id))
+	# check for existing membership
+	group = Group.query.get(id)
+	nickname = session.get('nickname')
+	active_user = User.query.filter_by(nickname=nickname).first()
+	membership = Membership.query.filter_by(group_id=id, user_id=active_user.id)
+	if membership == None:
+		error_message='You are not in this group.'
+		return render_template('generic-error.html', error_message)
+	# ask for confirmation
+	if request.method == 'GET':
+		return render_template('leave-group.html', group=group)
+	# remove them from the group by deleting the membership row
+	try:
+		db.session.delete(membership.one())
+		db.session.commit()
+		print('session commited')
+	except Exception as e:
+		print(e)
+		error_message='There was a problem removing you from the group.'
+		return render_template('generic-error.html', error_message=error_message, back_url=url_for('web.view_group', id=id))
 	return redirect(url_for('web.view_group', id=id))
 
 @web.route('/about')
