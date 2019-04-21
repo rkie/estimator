@@ -10,7 +10,7 @@ def app():
 		db.create_all()
 		user = User('default')
 		db.session.add(user)
-		user = User.query.filter_by(nickname='default').first()
+		db.session.flush()
 		test_group = Group('TestGroup', user)
 		db.session.add(test_group)
 		existing_group = Group('GroupAlreadyExists', user)
