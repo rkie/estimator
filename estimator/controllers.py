@@ -52,7 +52,6 @@ def create_group():
 			group = Group(group_name, user)
 			db.session.add(group)
 			db.session.flush()
-			print('Flushed session to get id="{}"'.format(group.id))
 			id = group.id
 			membership = Membership(group, user)
 			db.session.add(membership)
@@ -77,10 +76,9 @@ def view_group(id):
 	# Look up the other members of the group to display them on the page
 	members = User.query.join(Membership).filter(Membership.group_id==id).all()
 	owner_in_group = len([item for item in members if item.nickname == nickname]) == 1
-	print(owner_in_group)
 	# return the owner or member template as appropriate
 	if owner.nickname == nickname:
-		join_link=url_for("web.join_group", id=id, _external=True)
+		join_link = url_for("web.join_group", id=id, _external=True)
 		return render_template('group-owner.html', group=group, group_members=members, join_link=join_link, owner_in_group=owner_in_group)
 	if membership.count() > 0:
 		return render_template('group.html', group=group, group_members=members)
@@ -122,7 +120,6 @@ def join_group(id):
 
 @web.route('/group/<int:id>/leave', methods=['GET', 'POST'])
 def leave_group(id):
-	print('leaving group {}'.format(id))
 	# check for existing membership
 	group = Group.query.get(id)
 	nickname = session.get('nickname')
@@ -138,9 +135,7 @@ def leave_group(id):
 	try:
 		db.session.delete(membership.one())
 		db.session.commit()
-		print('session commited')
 	except Exception as e:
-		print(e)
 		error_message='There was a problem removing you from the group.'
 		return render_template('generic-error.html', error_message=error_message, back_url=url_for('web.view_group', id=id))
 	return redirect(url_for('web.view_group', id=id))
