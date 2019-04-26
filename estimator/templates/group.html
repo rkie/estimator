@@ -28,9 +28,13 @@
 				</tr>
 				{% for issue in issues %}
 				<tr>
-					<td>{{ issue.ref }}</td>>
-					<td>{{ issue.ref }}</td>>
-					<td><em>will give the estimate or a link to start estimation.</em></td>>
+					<td>{{ issue.story_ref }}</td>
+					<td>{{ issue.description }}</td>
+					{% if issue.final_estimate %}
+					<td>{{ issue.final_estimate }}
+					{% else %}
+					<td><a href='/issue/{{ issue.id }}/estimate'>Estimate</a></td>
+					{% endif %}
 				</tr>
 				{% endfor %}
 			</table>

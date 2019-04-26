@@ -35,3 +35,18 @@ class Membership(db.Model):
 	def __init__(self, group, user):
 		self.group_id = group.id
 		self.user_id = user.id
+
+class Issue(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	story_ref = db.Column(db.String(32), nullable=False)
+	description = db.Column(db.String(100), nullable=False)
+	group_id = db.Column(db.Integer, db.ForeignKey('estimation_group.id'), nullable=False)
+	final_estimate = db.Column(db.Integer, nullable=True)
+
+	def __init__(self, story_ref, description, group_id):
+		self.story_ref = story_ref
+		self.description = description
+		self.group_id = group_id
+
+	def __repr__(self):
+		self.story_ref

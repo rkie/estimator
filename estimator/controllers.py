@@ -1,7 +1,7 @@
 from flask import render_template, redirect, url_for, session, request
 from flask import Blueprint
-from forms.forms import NickNameForm, NewGroupForm
-from database.models import User, Group, Membership
+from forms.forms import NickNameForm, NewGroupForm, NewIssueForm
+from database.models import User, Group, Membership, Issue
 from estimator import db
 
 web = Blueprint('web', __name__)
@@ -76,12 +76,16 @@ def view_group(id):
 	# Look up the other members of the group to display them on the page
 	members = User.query.join(Membership).filter(Membership.group_id==id).all()
 	owner_in_group = len([item for item in members if item.nickname == nickname]) == 1
+
+	# look up the current issues in the group
+	issues = Issue.query.filter_by(group_id=id).all()
+
 	# return the owner or member template as appropriate
 	if owner.nickname == nickname:
 		join_link = url_for("web.join_group", id=id, _external=True)
-		return render_template('group-owner.html', group=group, group_members=members, join_link=join_link, owner_in_group=owner_in_group)
+		return render_template('group-owner.html', group=group, group_members=members, join_link=join_link, owner_in_group=owner_in_group, issues=issues)
 	if membership.count() > 0:
-		return render_template('group.html', group=group, group_members=members)
+		return render_template('group.html', group=group, group_members=members, issues=issues)
 
 	# return an error if no association with the group
 	error_message = 'You do not have permission to view this group.'
@@ -139,6 +143,16 @@ def leave_group(id):
 		error_message='There was a problem removing you from the group.'
 		return render_template('generic-error.html', error_message=error_message, back_url=url_for('web.view_group', id=id))
 	return redirect(url_for('web.view_group', id=id))
+
+@web.route('/group/<int:group_id>/issue', methods=['GET', 'POST'])
+def create_issue(group_id):
+	form = NewIssueForm()
+	if form.validate_on_submit():
+		issue = Issue(form.story_ref.data, form.description.data, group_id)
+		db.session.add(issue)
+		db.session.commit()
+		return redirect(url_for('web.view_group', id=group_id))
+	return render_template('create-issue.html', form=form)
 
 @web.route('/about')
 def about():
