@@ -1,0 +1,15 @@
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% block title %}Agile Anonymous Estimation{% endblock %}
+{% block content %}
+	<div class="container">
+		<h1>Estimate for issue {{ issue.story_ref }}</h1>
+		{% if prev_estimate %}
+		<p>You previously estimated this at {{ prev_estimate }}. By submitting again you will revise the earlier estimate.<p>
+		{% endif %}
+		<p>Use the form below to submit your estimate for '{{ issue.description }}'</p>
+		<p>
+			{{wtf.quick_form(form) }}
+		</p>
+	</div>
+{% endblock %}

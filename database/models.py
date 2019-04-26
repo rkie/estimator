@@ -50,3 +50,17 @@ class Issue(db.Model):
 
 	def __repr__(self):
 		self.story_ref
+
+class Estimate(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	issue_id = db.Column(db.Integer, db.ForeignKey('issue.id'), nullable=False)
+	user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+	estimate = db.Column(db.Integer)
+
+	def __init__(self, issue_id, user_id, estimate):
+		self.issue_id = issue_id
+		self.user_id = user_id
+		self.estimate = estimate
+
+	def __repr__(self):
+		return '{}'.format(self.estimate)

@@ -1,7 +1,7 @@
 from flask import render_template, redirect, url_for, session, request
 from flask import Blueprint
-from forms.forms import NickNameForm, NewGroupForm, NewIssueForm
-from database.models import User, Group, Membership, Issue
+from forms.forms import NickNameForm, NewGroupForm, NewIssueForm, EstimateForm
+from database.models import User, Group, Membership, Issue, Estimate
 from estimator import db
 
 web = Blueprint('web', __name__)
@@ -153,6 +153,24 @@ def create_issue(group_id):
 		db.session.commit()
 		return redirect(url_for('web.view_group', id=group_id))
 	return render_template('create-issue.html', form=form)
+
+@web.route('/issue/<int:issue_id>/estimate', methods=['GET', 'POST'])
+def make_estimate(issue_id):
+	form = EstimateForm()
+	issue = Issue.query.get(issue_id)
+	nickname = session.get('nickname')
+	active_user = User.query.filter_by(nickname=nickname).first()
+	prev_estimate = Estimate.query.filter_by(issue_id=issue_id, user_id=active_user.id).first()
+
+	if form.validate_on_submit():
+		if prev_estimate:
+			prev_estimate.estimate = form.estimate.data
+		else:
+			estimate = Estimate(issue_id, active_user.id, form.estimate.data)
+			db.session.add(estimate)
+		db.session.commit()
+		return redirect(url_for('web.view_group', id=issue.group_id))
+	return render_template('make-estimate.html', issue=issue, form=form, prev_estimate=prev_estimate)
 
 @web.route('/about')
 def about():
