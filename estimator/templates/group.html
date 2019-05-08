@@ -28,7 +28,7 @@
 				</tr>
 				{% for issue in issues %}
 				<tr>
-					<td>{{ issue.story_ref }}</td>
+					<td><a href='/issue/{{ issue.id }}'>{{ issue.story_ref }}</a></td>
 					<td>{{ issue.description }}</td>
 					{% if issue.final_estimate %}
 					<td>{{ issue.final_estimate }}
