@@ -17,6 +17,7 @@ def index():
 			user_id = user.first().id
 			groups = Group.query.filter_by(user=user_id).all()
 			other_groups = Group.query.join(Membership).filter(Membership.user_id==user_id).all()
+			other_groups = [item for item in other_groups if item.user != user_id]
 
 	form = NickNameForm()
 	new_group_form = NewGroupForm()
