@@ -1,6 +1,6 @@
 from flask import render_template, redirect, url_for, session, request
 from flask import Blueprint
-from forms.forms import NickNameForm, NewGroupForm, NewIssueForm, EstimateForm
+from forms.forms import NickNameForm, NewGroupForm, NewIssueForm, EstimateForm, ReviewEstimatesForm
 from database.models import User, Group, Membership, Issue, Estimate
 from estimator import db
 
@@ -59,19 +59,23 @@ def create_group():
 		return redirect(url_for('web.view_group', id=id))
 	return redirect(url_for('web.index'))
 
+def does_group_contain(group_id, active_user_id):
+	membership = Membership.query.filter_by(group_id=group_id, user_id=active_user_id)
+	return membership.count() > 0
+
+def is_group_owner(group, session_nickname):
+	owner = User.query.get(group.user);
+	return owner.nickname == session_nickname
+
 @web.route('/group/<int:id>', methods=['GET'])
 def view_group(id):
 	group = Group.query.get(id)
-	owner = User.query.get(group.user);
 	nickname = session.get('nickname')
 
 	# make sure the user exists and is logged in
 	active_user = User.query.filter_by(nickname=nickname).first()
 	if active_user == None:
 		return redirect(url_for('web.index'))
-
-	# Check whether this user is a member and send to the error page if not
-	membership = Membership.query.filter_by(group_id=group.id, user_id=active_user.id)
 
 	# Look up the other members of the group to display them on the page
 	members = User.query.join(Membership).filter(Membership.group_id==id).all()
@@ -81,10 +85,10 @@ def view_group(id):
 	issues = Issue.query.filter_by(group_id=id).all()
 
 	# return the owner or member template as appropriate
-	if owner.nickname == nickname:
+	if is_group_owner(group, nickname):
 		join_link = url_for("web.join_group", id=id, _external=True)
 		return render_template('group-owner.html', group=group, group_members=members, join_link=join_link, owner_in_group=owner_in_group, issues=issues)
-	if membership.count() > 0:
+	if does_group_contain(group.id, active_user.id):
 		return render_template('group.html', group=group, group_members=members, issues=issues)
 
 	# return an error if no association with the group
@@ -171,6 +175,21 @@ def make_estimate(issue_id):
 		db.session.commit()
 		return redirect(url_for('web.view_group', id=issue.group_id))
 	return render_template('make-estimate.html', issue=issue, form=form, prev_estimate=prev_estimate)
+
+@web.route('/issue/<int:issue_id>')
+def view_issue(issue_id):
+	[issue, members, estimates] = remaining_estimates(issue_id)
+	group = Group.query.get(issue.group_id)
+	is_owner = is_group_owner(group, session.get('nickname'))
+	review_estimates_form = ReviewEstimatesForm()
+	return render_template('view-issue.html', issue=issue, members=members, estimates=estimates, is_owner=is_owner, review_estimates_form=review_estimates_form)
+
+def remaining_estimates(issue_id):
+	"""Returns the number of outstanding estimates for an issue"""
+	issue = Issue.query.get(issue_id)
+	members = Membership.query.filter_by(group_id=issue.group_id).count()
+	estimates = Estimate.query.filter_by(issue_id=issue_id).count()
+	return [issue, members, estimates]
 
 @web.route('/about')
 def about():

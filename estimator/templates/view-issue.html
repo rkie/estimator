@@ -1,0 +1,29 @@
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% block title %}Agile Anonymous Estimation{% endblock %}
+{% block content %}
+	<div class="container">
+		<h1>Issue: {{ issue.story_ref }}</h1>
+
+		<p> Description: {{ issue.description }}
+		{% if members == estimates %}
+		<p>All of the estimates ({{ estimates }}) have been submitted for this issue.<p>
+		{% else %}
+		<p>Only {{ estimates }} of {{ members }} estimates have been submitted for this issue.<p>
+		{% endif %}
+	</div>
+{% if is_owner %}
+	<div class="container">
+		<p>The estimation process has not completed for this issue. As the owner of this group you can reveal the average estimate now. Please click on the button below when all estimators are ready.</p>
+		
+		{{ wtf.quick_form(review_estimates_form) }}
+	</div>
+{% endif %}
+
+{% if members < 3 %}
+	<div class="container">
+		<p>Note that there is not enough members in this group to provide a truly anonymous estimation. Consider inviting other colleagues or use an open form of estimation, such as Planning Poker.</p>
+	</div>
+{% endif %}
+
+{% endblock %}

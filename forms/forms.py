@@ -18,3 +18,6 @@ class NewIssueForm(FlaskForm):
 class EstimateForm(FlaskForm):
 	estimate = IntegerField('Give a positive integer estimate', validators=[DataRequired(), NumberRange(min=0)])
 	submit = SubmitField('Make Estimate')
+
+class ReviewEstimatesForm(FlaskForm):
+	submit = SubmitField('Review Estimates')
