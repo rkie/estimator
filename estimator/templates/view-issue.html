@@ -6,17 +6,18 @@
 		<h1>Issue: {{ issue.story_ref }}</h1>
 
 		<p> Description: {{ issue.description }}
-		{% if members == estimates %}
+	{% if members == estimates %}
 		<p>All of the estimates ({{ estimates }}) have been submitted for this issue.<p>
-		{% else %}
+	{% else %}
 		<p>Only {{ estimates }} of {{ members }} estimates have been submitted for this issue.<p>
-		{% endif %}
+	{% endif %}
 	</div>
+
 {% if is_owner %}
 	<div class="container">
 		<p>The estimation process has not completed for this issue. As the owner of this group you can reveal the average estimate now. Please click on the button below when all estimators are ready.</p>
-		
-		{{ wtf.quick_form(review_estimates_form) }}
+
+		{{ wtf.quick_form(review_estimates_form, action="/issue/{}/review".format(issue.id)) }}
 	</div>
 {% endif %}
 

@@ -192,6 +192,13 @@ def remaining_estimates(issue_id):
 	estimates = Estimate.query.filter_by(issue_id=issue_id).count()
 	return [issue, members, estimates]
 
+@web.route('/issue/<int:issue_id>/review', methods=["POST"])
+def review_issue(issue_id):
+	issue = Issue.query.get(issue_id)
+	# TODO - implement
+	print("Reviewing issue {}".format(issue.story_ref))
+	return redirect(url_for("web.view_issue", issue_id=issue_id))
+
 @web.route('/about')
 def about():
 	return "About this site."
