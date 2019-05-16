@@ -1,0 +1,23 @@
+{% extends "bootstrap/base.html" %}
+
+{% block title %}Agile Anonymous Estimation{% endblock %}
+
+{% block navbar %}
+<nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/">Agile Anonymous Estimation</a>
+    </div>
+    <ul class="nav navbar-nav">
+      {% if session['nickname'] %}
+      <li><a href="/">My Groups</a></li>
+      <li><a href="/confirm-logout">Sign Out {{ session['nickname'] }}</a></li>
+      {% endif %}
+    </ul>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+
+{% endblock %}

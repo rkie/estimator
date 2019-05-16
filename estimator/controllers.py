@@ -139,7 +139,7 @@ def leave_group(id):
 	membership = Membership.query.filter_by(group_id=id, user_id=active_user.id)
 	if membership == None:
 		error_message='You are not in this group.'
-		return render_template('generic-error.html', error_message)
+		return render_template('generic-error.html', error_message=error_message)
 	# ask for confirmation
 	if request.method == 'GET':
 		return render_template('leave-group.html', group=group)
@@ -252,6 +252,18 @@ def remove_estimates(issue_id):
 	estimates = Estimate.query.filter_by(issue_id=issue_id)
 	estimates.delete()
 	db.session.commit()
+
+@web.route('/confirm-logout', methods=['GET', 'POST'])
+def confirm_logout():
+	if request.method == 'GET':
+		return render_template('confirm-logout.html')
+	session.pop('nickname')
+	return redirect(url_for('web.index'))
+
+@web.app_errorhandler(404)
+def wrong_page(err):
+	error_message = 'The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again. Apologies for this inconvenience.'
+	return render_template('generic-error.html', error_message=error_message), 404
 
 @web.route('/about')
 def about():
