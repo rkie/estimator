@@ -232,7 +232,7 @@ def lock_estimate(issue_id):
 		save_estimate(issue_id, form.estimate.data)
 		remove_estimates(issue_id)
 		issue = Issue.query.get(issue_id)
-		return redirect(url_for('web.view_group'), id=issue.group_id)
+		return redirect(url_for('web.view_group', id=issue.group_id))
 	return redirect(url_for('web.review_issue', issue_id=issue_id))
 
 @web.route('/issue/<int:issue_id>/startover', methods=['GET', 'POST'])
