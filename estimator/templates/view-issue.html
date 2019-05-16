@@ -17,7 +17,11 @@
 	<div class="container">
 		<p>The estimation process has not completed for this issue. As the owner of this group you can reveal the average estimate now. Please click on the button below when all estimators are ready.</p>
 
-		{{ wtf.quick_form(review_estimates_form, action="/issue/{}/review".format(issue.id)) }}
+		{% if estimates > 0 %}
+		<p>
+			<a href="/issue/{{ issue.id }}/review">Click here to reveal the average estimate.</a>
+		</p>
+		{% endif %}
 	</div>
 {% endif %}
 

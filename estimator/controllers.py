@@ -1,10 +1,13 @@
 from flask import render_template, redirect, url_for, session, request
 from flask import Blueprint
-from forms.forms import NickNameForm, NewGroupForm, NewIssueForm, EstimateForm, ReviewEstimatesForm
+from forms.forms import NickNameForm, NewGroupForm, NewIssueForm, EstimateForm, LockEstimateForm
 from database.models import User, Group, Membership, Issue, Estimate
 from estimator import db
 
 web = Blueprint('web', __name__)
+
+# short, truncated Fibonacci number list
+fibonacci = [1,2,3,5,8,13,21,34,55,89,100]
 
 @web.route('/', methods=['GET'])
 def index():
@@ -182,8 +185,7 @@ def view_issue(issue_id):
 	[issue, members, estimates] = remaining_estimates(issue_id)
 	group = Group.query.get(issue.group_id)
 	is_owner = is_group_owner(group, session.get('nickname'))
-	review_estimates_form = ReviewEstimatesForm()
-	return render_template('view-issue.html', issue=issue, members=members, estimates=estimates, is_owner=is_owner, review_estimates_form=review_estimates_form)
+	return render_template('view-issue.html', issue=issue, members=members, estimates=estimates, is_owner=is_owner)
 
 def remaining_estimates(issue_id):
 	"""Returns the number of outstanding estimates for an issue"""
@@ -192,12 +194,64 @@ def remaining_estimates(issue_id):
 	estimates = Estimate.query.filter_by(issue_id=issue_id).count()
 	return [issue, members, estimates]
 
-@web.route('/issue/<int:issue_id>/review', methods=["POST"])
+@web.route('/issue/<int:issue_id>/review', methods=["GET"])
 def review_issue(issue_id):
 	issue = Issue.query.get(issue_id)
-	# TODO - implement
-	print("Reviewing issue {}".format(issue.story_ref))
-	return redirect(url_for("web.view_issue", issue_id=issue_id))
+	try:
+		average = calculate_average_estimate(issue_id)
+	except ZeroDivisionError:
+		error_message = 'More estimates are required to provide an average.'
+		back_url = url_for('web.view_issue', issue_id=issue_id)
+		return render_template('generic-error.html', error_message=error_message, back_url=back_url), 400		
+
+	# calc the nearest integer
+	nearest_int = int(average)
+	# calc the nearest fibonacci (up to 100)
+	nearest_fib = [item for item in fibonacci if item >= nearest_int][0]
+
+	# Create a form
+	estimate_form = LockEstimateForm()
+	estimate_form.estimate.default = nearest_fib
+	estimate_form.process()
+
+	# allow user to post his/her choice
+	return render_template('agree-estimate.html', issue=issue, average=average, nearest_int=nearest_int, nearest_fib=nearest_fib, estimate_form=estimate_form)
+
+def calculate_average_estimate(issue_id):
+	estimates = Estimate.query.filter_by(issue_id=issue_id).all()
+	total = 0
+	for est in estimates:
+		total += est.estimate
+	average = total / len(estimates)
+	return average
+
+@web.route('/issue/<int:issue_id>/lock', methods=['POST'])
+def lock_estimate(issue_id):
+	form = LockEstimateForm()
+	if form.validate_on_submit():
+		save_estimate(issue_id, form.estimate.data)
+		remove_estimates(issue_id)
+		issue = Issue.query.get(issue_id)
+		return redirect(url_for('web.view_group'), id=issue.group_id)
+	return redirect(url_for('web.review_issue', issue_id=issue_id))
+
+@web.route('/issue/<int:issue_id>/startover', methods=['GET', 'POST'])
+def start_over(issue_id):
+	issue = Issue.query.get(issue_id)
+	if request.method == 'GET':
+		return render_template('confirm-start-over.html', issue=issue)
+	remove_estimates(issue_id)
+	return redirect(url_for('web.view_group', id=issue.group_id))
+
+def save_estimate(issue_id, estimate):
+	issue = Issue.query.get(issue_id)
+	issue.final_estimate = estimate
+	db.session.commit()
+
+def remove_estimates(issue_id):
+	estimates = Estimate.query.filter_by(issue_id=issue_id)
+	estimates.delete()
+	db.session.commit()
 
 @web.route('/about')
 def about():

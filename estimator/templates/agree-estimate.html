@@ -1,0 +1,27 @@
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% block title %}Agile Anonymous Estimation{% endblock %}
+{% block content %}
+	<div class="container">
+		<h1>Issue: {{ issue.story_ref }}</h1>
+
+		<p> Description: {{ issue.description }}
+
+		<div class="hero-unit">
+			<h2>The average estimate was {{ average }}.</h2>
+			<p> The nearest rounded integer is <b>{{ nearest_int }}</b>. The nearest Fibonacci number (from a limited set) is <b>{{ nearest_fib }}</b> and this is the option that has been pre-populated into the form below. Feel free to change this following a discussion, if necessary.</p>
+			<p>
+			{{ wtf.quick_form(estimate_form, action="/issue/{}/lock".format(issue.id), button_map={'submit': 'btn btn-large btn-success'}) }}
+			</p>
+
+			<p>If the result is a surprise, or contentious, you can choose to try the estimation process from scratch. All estimates will be removed and your group members will have to re-submit their votes.</p>
+
+			<p>Alternatively, you can begin the estimation process all over again by clicking this button:</p>
+
+			<a href="/issue/{{ issue.id }}/startover" class="btn btn-large btn-warning">Start Over</a>
+		</div>
+
+		
+
+	</div>
+{% endblock %}

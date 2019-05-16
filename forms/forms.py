@@ -16,8 +16,9 @@ class NewIssueForm(FlaskForm):
 	submit = SubmitField('Create Issue')
 
 class EstimateForm(FlaskForm):
-	estimate = IntegerField('Give a positive integer estimate', validators=[DataRequired(), NumberRange(min=0)])
+	estimate = IntegerField('Give a positive integer estimate', validators=[DataRequired(), NumberRange(min=0, max=100)])
 	submit = SubmitField('Make Estimate')
 
-class ReviewEstimatesForm(FlaskForm):
-	submit = SubmitField('Review Estimates')
+class LockEstimateForm(FlaskForm):
+	estimate = IntegerField('Would you like to modify the estimate?', validators=[DataRequired(), NumberRange(min=0, max=100)])
+	submit = SubmitField('Lock Estimate')
