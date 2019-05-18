@@ -168,6 +168,13 @@ def make_estimate(issue_id):
 	issue = Issue.query.get(issue_id)
 	nickname = session.get('nickname')
 	active_user = User.query.filter_by(nickname=nickname).first()
+	# validate the user is a member
+	member = Membership.query.filter_by(group_id=issue.group_id, user_id=active_user.id)
+	if member.count() == 0:
+		error_message = 'You are not a voting member of this group. Please join the group to access this functionality.'
+		back_url = url_for('web.view_group', id=issue.group_id)
+		return render_template('generic-error.html', error_message=error_message, back_url=back_url), 403
+
 	prev_estimate = Estimate.query.filter_by(issue_id=issue_id, user_id=active_user.id).first()
 
 	if form.validate_on_submit():

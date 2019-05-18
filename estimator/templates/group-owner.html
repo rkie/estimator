@@ -23,7 +23,7 @@
 		<p><a href="/group/{{ group.id }}/issue" type='button'>Create New Issue</a></p>
 
 		{% if issues %}
-			<table>
+			<table class="table">
 				<tr>
 					<th>Story Ref.</th>
 					<th>Description</th>
@@ -31,13 +31,21 @@
 				</tr>
 				{% for issue in issues %}
 				<tr>
-					<td><a href='/issue/{{ issue.id }}'>{{ issue.story_ref }}</a></td>
+					<td>
+						<a href='/issue/{{ issue.id }}'>{{ issue.story_ref }}</a>
+					</td>
 					<td>{{ issue.description }}</td>
+					<td>
 					{% if issue.final_estimate %}
-					<td>{{ issue.final_estimate }}
+						{{ issue.final_estimate }}
 					{% else %}
-					<td><a href='/issue/{{ issue.id }}/estimate'>Estimate</a></td>
+						{% if owner_in_group %}
+						<a href='/issue/{{ issue.id }}/estimate'>Estimate</a>
+						{% else %}
+						Esimation in progress
+						{% endif %}
 					{% endif %}
+					</td>
 				</tr>
 				{% endfor %}
 			</table>
@@ -45,10 +53,12 @@
 			You have not created any issues for this group yet.
 		{% endif %}
 	</div>
-	{% if owner_in_group %}
 	<div class="container">
+	{% if owner_in_group %}
 		<p />
 		<p>You can leave this group but remain as owner if you are not taking part in the estimation. <a href="{{ url_for('web.leave_group', id=group.id) }}">Click here to leave the group.</a></p>
-	<div>
+	{% else %}
+		<p>Since you are not a voting member of this group, you cannot take part in the estimation process. To rejoin, click <a href='{{ join_link }}'>here</a>.</p>
 	{% endif %}
+	<div>
 {% endblock %}
