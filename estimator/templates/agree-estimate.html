@@ -13,9 +13,9 @@
 			{{ wtf.quick_form(estimate_form, action="/issue/{}/lock".format(issue.id), button_map={'submit': 'btn btn-large btn-success'}) }}
 			</p>
 
-			<p>If the result is a surprise, or contentious, you can choose to try the estimation process from scratch. All estimates will be removed and your group members will have to re-submit their votes.</p>
+			<p>If the result is a surprise, or contentious, you may need to discuss why this difference has arisen. Try to come to a consensus and agree an estimate as a group.</p>
 
-			<p>Alternatively, you can begin the estimation process all over again by clicking this button:</p>
+			<p>Alternatively, you can begin the estimation process all over again by clicking this button which will clear out all existing estimates:</p>
 
 			<a href="/issue/{{ issue.id }}/startover" class="btn btn-large btn-warning">Start Over</a>
 		</div>
