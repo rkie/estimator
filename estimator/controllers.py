@@ -146,11 +146,14 @@ def leave_group(id):
 	# remove them from the group by deleting the membership row
 	try:
 		db.session.delete(membership.one())
+		# also remove any estimations in progress
+		estimates = Estimate.query.filter_by(user_id=active_user.id).join(Issue).filter(Issue.group_id==id)
+		[db.session.delete(item) for item in estimates.all()]
 		db.session.commit()
 	except Exception as e:
-		error_message='There was a problem removing you from the group.'
+		error_message = 'There was a problem removing you from the group.'
 		return render_template('generic-error.html', error_message=error_message, back_url=url_for('web.view_group', id=id))
-	return redirect(url_for('web.view_group', id=id))
+	return redirect(url_for('web.index'))
 
 @web.route('/group/<int:group_id>/issue', methods=['GET', 'POST'])
 def create_issue(group_id):
@@ -204,12 +207,18 @@ def remaining_estimates(issue_id):
 @web.route('/issue/<int:issue_id>/review', methods=["GET"])
 def review_issue(issue_id):
 	issue = Issue.query.get(issue_id)
+	group = Group.query.get(issue.group_id)
+	nickname = session.get('nickname')
+	if not(is_group_owner(group, nickname)):
+		error_message = 'Only thre group owner can review an issue.'
+		back_url = url_for('web.view_issue', issue_id=issue_id)
+		return render_template('generic-error.html', error_message=error_message, back_url=back_url), 400
 	try:
 		average = calculate_average_estimate(issue_id)
 	except ZeroDivisionError:
 		error_message = 'More estimates are required to provide an average.'
 		back_url = url_for('web.view_issue', issue_id=issue_id)
-		return render_template('generic-error.html', error_message=error_message, back_url=back_url), 400		
+		return render_template('generic-error.html', error_message=error_message, back_url=back_url), 400
 
 	# calc the nearest integer
 	nearest_int = int(average)
@@ -234,6 +243,13 @@ def calculate_average_estimate(issue_id):
 
 @web.route('/issue/<int:issue_id>/lock', methods=['POST'])
 def lock_estimate(issue_id):
+	group = Group.query.join(Issue).filter(Issue.id==issue_id).first()
+	nickname = session.get('nickname')
+	if not(is_group_owner(group, nickname)):
+		error_message = 'Only thre group owner can lock the estimate.'
+		back_url = url_for('web.view_issue', issue_id=issue_id)
+		return render_template('generic-error.html', error_message=error_message, back_url=back_url), 400
+
 	form = LockEstimateForm()
 	if form.validate_on_submit():
 		save_estimate(issue_id, form.estimate.data)
@@ -245,6 +261,13 @@ def lock_estimate(issue_id):
 @web.route('/issue/<int:issue_id>/startover', methods=['GET', 'POST'])
 def start_over(issue_id):
 	issue = Issue.query.get(issue_id)
+	group = Group.query.get(issue.group_id)
+	nickname = session.get('nickname')
+	if not(is_group_owner(group, nickname)):
+		error_message = 'Only thre group owner can restart estimation.'
+		back_url = url_for('web.view_issue', issue_id=issue_id)
+		return render_template('generic-error.html', error_message=error_message, back_url=back_url), 400
+
 	if request.method == 'GET':
 		return render_template('confirm-start-over.html', issue=issue)
 	remove_estimates(issue_id)
