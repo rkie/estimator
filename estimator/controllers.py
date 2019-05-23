@@ -75,6 +75,9 @@ def is_group_owner(group, session_nickname):
 def view_group(id):
 	group = Group.query.get(id)
 	nickname = session.get('nickname')
+	if nickname == None:
+		error_message = 'Please log in before to taking this action.'
+		return render_template('generic-error.html', error_message=error_message, back_url=url_for('web.index'))
 
 	# make sure the user exists and is logged in
 	active_user = User.query.filter_by(nickname=nickname).first()
@@ -111,6 +114,10 @@ def join_group(id):
 
 	# ensure the user must be in the database to allow them to join
 	nickname = session.get('nickname')
+	if nickname == None:
+		error_message = 'Please log in before to taking this action.'
+		return render_template('generic-error.html', error_message=error_message, back_url=url_for('web.index'))
+
 	active_user = User.query.filter_by(nickname=nickname).first()
 	if active_user == None:
 		active_user = User(nickname)
