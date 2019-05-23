@@ -1,14 +1,17 @@
 {% extends "base-template.html" %}
 {% block content %}
 	<div class="container">
-		<h1>Issue: {{ issue.story_ref }}</h1>
+		<div class="hero-unit">
+			<h1>Issue: {{ issue.story_ref }}</h1>
 
-		<p> Description: {{ issue.description }}
-	{% if members == estimates %}
-		<p>All of the estimates ({{ estimates }}) have been submitted for this issue.<p>
-	{% else %}
-		<p>Only {{ estimates }} of {{ members }} estimates have been submitted for this issue.<p>
-	{% endif %}
+			<h3> Description: {{ issue.description }} </h3>
+
+		{% if members == estimates %}
+			<p>All of the estimates ({{ estimates }}) have been submitted for this issue.</p>
+		{% else %}
+			<p>Only {{ estimates }} of {{ members }} estimates have been submitted for this issue.</p>
+		{% endif %}
+		</div>
 	</div>
 
 {% if is_owner %}

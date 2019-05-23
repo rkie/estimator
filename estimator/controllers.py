@@ -113,7 +113,9 @@ def join_group(id):
 	nickname = session.get('nickname')
 	active_user = User.query.filter_by(nickname=nickname).first()
 	if active_user == None:
-		return redirect(url_for('web.index'))
+		active_user = User(nickname)
+		db.session.add(active_user)
+		db.session.flush()
 
 	# should not join the group more than once
 	if Membership.query.filter_by(user_id=active_user.id, group_id=id).count() > 0:
