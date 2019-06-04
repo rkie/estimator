@@ -6,7 +6,13 @@
 	</div>
 	<div class="container">
 		{% if nickname %}
-			Hello {{ nickname }}. Here is a list of groups which you created:
+			<p>Hello {{ nickname }}. All the groups you create will be listed here. 
+			{% if groups %}
+				You have created the following groups:
+			{% else %}
+				It looks like you have not created any groups yet.
+			{% endif %}
+			</p>
 			<ul>
 				{% for group in groups %}
 					<li><a href="group/{{ group.id }}">{{ group.name }}</a></li>

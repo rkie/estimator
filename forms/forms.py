@@ -4,7 +4,7 @@ from wtforms.validators import DataRequired, NumberRange
 
 class NickNameForm(FlaskForm):
     name = StringField('Please enter a nickname', validators=[DataRequired()])
-    submit = SubmitField('Submit')
+    submit = SubmitField('Login')
 
 class NewGroupForm(FlaskForm):
     group_name = StringField('Enter the name of the new group', validators=[DataRequired()])
