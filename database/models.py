@@ -1,4 +1,5 @@
 from estimator import db
+from flask_login import UserMixin
 
 class Group(db.Model):
 	"""A group that team members can join and contains issues"""
@@ -15,7 +16,7 @@ class Group(db.Model):
 		return '<Estimation group: {}>'.format(self.name)
 
 
-class User(db.Model):
+class User(UserMixin, db.Model):
 	"""A user that can create groups and issues for estimation"""
 
 	id = db.Column(db.Integer, primary_key=True)

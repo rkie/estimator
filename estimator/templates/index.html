@@ -5,8 +5,8 @@
 		<h1>Let’s Estimate Something</h1>
 	</div>
 	<div class="container">
-		{% if nickname %}
-			<p>Hello {{ nickname }}. All the groups you create will be listed here. 
+		{% if current_user.is_authenticated %}
+			<p>Hello {{ current_user }}. All the groups you create will be listed here. 
 			{% if groups %}
 				You have created the following groups:
 			{% else %}
@@ -33,7 +33,7 @@
 
 			<p>This web application makes use of cookies to store your nickname. Without this, it cannot track your esimates. This is the only data that will be stored on your browser in this version of the application. By using the form below, you agree to this use of cookies.</p>
 
-			{{ wtf.quick_form(form) }}
+			<p><a href="{{ url_for('web.login') }}">Click here to Login</a>.</p>
 		{% endif %}
 	</div>
 {% endblock %}

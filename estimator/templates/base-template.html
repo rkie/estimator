@@ -9,9 +9,9 @@
       <a class="navbar-brand" href="/">Agile Anonymous Estimation</a>
     </div>
     <ul class="nav navbar-nav">
-      {% if session['nickname'] %}
+      {% if current_user.is_authenticated %}
       <li><a href="/">My Groups</a></li>
-      <li><a href="/confirm-logout">Sign Out {{ session['nickname'] }}</a></li>
+      <li><a href="/confirm-logout">Sign Out {{ current_user }}</a></li>
       {% endif %}
     </ul>
   </div>

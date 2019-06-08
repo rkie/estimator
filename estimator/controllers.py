@@ -1,21 +1,26 @@
-from flask import render_template, redirect, url_for, session, request
+from flask import render_template, redirect, url_for, request
 from flask import Blueprint
 from forms.forms import NickNameForm, NewGroupForm, NewIssueForm, EstimateForm, LockEstimateForm
 from database.models import User, Group, Membership, Issue, Estimate
 from estimator import db
+from flask_login import login_required, login_user, logout_user, current_user
+from estimator import login_manager
 
 web = Blueprint('web', __name__)
 
 # short, truncated Fibonacci number list
 fibonacci = [1,2,3,5,8,13,21,34,55,89,100]
 
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
 @web.route('/', methods=['GET'])
 def index():
-	nickname = session.get('nickname')
 	groups = []
 	other_groups = []
-	if nickname != None:
-		user = User.query.filter_by(nickname=nickname)
+	if current_user.is_authenticated:
+		user = User.query.filter_by(nickname=current_user.nickname)
 		if user.count() > 0:
 			user_id = user.first().id
 			groups = Group.query.filter_by(user=user_id).all()
@@ -24,22 +29,39 @@ def index():
 
 	form = NickNameForm()
 	new_group_form = NewGroupForm()
-	return render_template('index.html', form=form, nickname=nickname, groups=groups, new_group_form=new_group_form, other_groups=other_groups)
+	return render_template('index.html', form=form, groups=groups, new_group_form=new_group_form, other_groups=other_groups)
 
-@web.route('/', methods=['POST'])
-def accept_nickname():
+def find_or_create_user(nickname):
+	user = User.query.filter_by(nickname=nickname).first()
+	if user == None:
+		user = User(nickname)
+		db.session.add(user)
+		db.session.commit()
+	return user
+
+@web.route('/login', methods=['GET', 'POST'])
+def login():
 	form = NickNameForm()
 	if form.validate_on_submit():
-		session['nickname'] = form.name.data
-		form.name.data = ''
-	return redirect(url_for('web.index'))
+		nickname = form.name.data
+		# this is where real authentication should be done
+		user = find_or_create_user(nickname)
+		login_user(user)
+		next = request.args.get('next')
+		if next is None or not next.startswith('/'):
+			next = url_for('web.index')
+		return redirect(next)
+		error_message = "Unable to log you in."
+		return render_template('generic-error.html', error_message=error_message, back_url=next), 400
+	return render_template('login.html', form=form)
 
-@web.route('/creategroup', methods=['POST'])
+@web.route('/creategroup', methods=['GET', 'POST'])
+@login_required
 def create_group():
 	form = NewGroupForm()
 	id = -1
 	if form.validate_on_submit():
-		nickname = session.get('nickname')
+		nickname = current_user.nickname
 		user_query = User.query.filter_by(nickname=nickname)
 		if user_query.count() == 0:
 			user = User(nickname)
@@ -72,15 +94,16 @@ def is_group_owner(group, session_nickname):
 	return owner.nickname == session_nickname
 
 @web.route('/group/<int:id>', methods=['GET'])
+@login_required
 def view_group(id):
 	group = Group.query.get(id)
-	nickname = session.get('nickname')
+	nickname = current_user.nickname
 	if nickname == None:
 		error_message = 'Please log in before to taking this action.'
 		return render_template('generic-error.html', error_message=error_message, back_url=url_for('web.index'))
 
 	# make sure the user exists and is logged in
-	active_user = User.query.filter_by(nickname=nickname).first()
+	active_user = current_user
 	if active_user == None:
 		return redirect(url_for('web.index'))
 
@@ -104,6 +127,7 @@ def view_group(id):
 	return render_template('generic-error.html', error_message=error_message, back_url=back_url), 400
 
 @web.route('/group/<int:id>/join', methods=['GET','POST'])
+@login_required
 def join_group(id):
 	"""Serve page to allow a user to join the group. Also accept post to join the group."""
 
@@ -113,17 +137,12 @@ def join_group(id):
 		return render_template("generic-error.html", error_message='That group does not exist.')
 
 	# ensure the user must be in the database to allow them to join
-	nickname = session.get('nickname')
+	nickname = current_user.nickname
 	if nickname == None:
 		error_message = 'Please log in before to taking this action.'
 		return render_template('generic-error.html', error_message=error_message, back_url=url_for('web.index'))
 
-	active_user = User.query.filter_by(nickname=nickname).first()
-	if active_user == None:
-		active_user = User(nickname)
-		db.session.add(active_user)
-		db.session.flush()
-
+	active_user = current_user
 	# should not join the group more than once
 	if Membership.query.filter_by(user_id=active_user.id, group_id=id).count() > 0:
 		return render_template('generic-error.html', error_message='You are already in this group.')
@@ -140,11 +159,11 @@ def join_group(id):
 	return redirect(url_for('web.view_group', id=id))
 
 @web.route('/group/<int:id>/leave', methods=['GET', 'POST'])
+@login_required
 def leave_group(id):
 	# check for existing membership
 	group = Group.query.get(id)
-	nickname = session.get('nickname')
-	active_user = User.query.filter_by(nickname=nickname).first()
+	active_user = current_user
 	membership = Membership.query.filter_by(group_id=id, user_id=active_user.id)
 	if membership == None:
 		error_message='You are not in this group.'
@@ -165,6 +184,7 @@ def leave_group(id):
 	return redirect(url_for('web.index'))
 
 @web.route('/group/<int:group_id>/issue', methods=['GET', 'POST'])
+@login_required
 def create_issue(group_id):
 	form = NewIssueForm()
 	if form.validate_on_submit():
@@ -175,11 +195,11 @@ def create_issue(group_id):
 	return render_template('create-issue.html', form=form)
 
 @web.route('/issue/<int:issue_id>/estimate', methods=['GET', 'POST'])
+@login_required
 def make_estimate(issue_id):
 	form = EstimateForm()
 	issue = Issue.query.get(issue_id)
-	nickname = session.get('nickname')
-	active_user = User.query.filter_by(nickname=nickname).first()
+	active_user = current_user
 	# validate the user is a member
 	member = Membership.query.filter_by(group_id=issue.group_id, user_id=active_user.id)
 	if member.count() == 0:
@@ -200,10 +220,11 @@ def make_estimate(issue_id):
 	return render_template('make-estimate.html', issue=issue, form=form, prev_estimate=prev_estimate)
 
 @web.route('/issue/<int:issue_id>')
+@login_required
 def view_issue(issue_id):
 	[issue, members, estimates] = remaining_estimates(issue_id)
 	group = Group.query.get(issue.group_id)
-	is_owner = is_group_owner(group, session.get('nickname'))
+	is_owner = is_group_owner(group, current_user.nickname)
 	return render_template('view-issue.html', issue=issue, members=members, estimates=estimates, is_owner=is_owner)
 
 def remaining_estimates(issue_id):
@@ -214,10 +235,11 @@ def remaining_estimates(issue_id):
 	return [issue, members, estimates]
 
 @web.route('/issue/<int:issue_id>/review', methods=["GET"])
+@login_required
 def review_issue(issue_id):
 	issue = Issue.query.get(issue_id)
 	group = Group.query.get(issue.group_id)
-	nickname = session.get('nickname')
+	nickname = current_user.nickname
 	if not(is_group_owner(group, nickname)):
 		error_message = 'Only thre group owner can review an issue.'
 		back_url = url_for('web.view_issue', issue_id=issue_id)
@@ -251,9 +273,10 @@ def calculate_average_estimate(issue_id):
 	return average
 
 @web.route('/issue/<int:issue_id>/lock', methods=['POST'])
+@login_required
 def lock_estimate(issue_id):
 	group = Group.query.join(Issue).filter(Issue.id==issue_id).first()
-	nickname = session.get('nickname')
+	nickname = current_user.nickname
 	if not(is_group_owner(group, nickname)):
 		error_message = 'Only thre group owner can lock the estimate.'
 		back_url = url_for('web.view_issue', issue_id=issue_id)
@@ -268,10 +291,11 @@ def lock_estimate(issue_id):
 	return redirect(url_for('web.review_issue', issue_id=issue_id))
 
 @web.route('/issue/<int:issue_id>/startover', methods=['GET', 'POST'])
+@login_required
 def start_over(issue_id):
 	issue = Issue.query.get(issue_id)
 	group = Group.query.get(issue.group_id)
-	nickname = session.get('nickname')
+	nickname = current_user.nickname
 	if not(is_group_owner(group, nickname)):
 		error_message = 'Only thre group owner can restart estimation.'
 		back_url = url_for('web.view_issue', issue_id=issue_id)
@@ -293,10 +317,11 @@ def remove_estimates(issue_id):
 	db.session.commit()
 
 @web.route('/confirm-logout', methods=['GET', 'POST'])
+@login_required
 def confirm_logout():
 	if request.method == 'GET':
 		return render_template('confirm-logout.html')
-	session.pop('nickname')
+	logout_user()
 	return redirect(url_for('web.index'))
 
 @web.app_errorhandler(404)
