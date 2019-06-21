@@ -61,13 +61,9 @@ def create_group():
 	form = NewGroupForm()
 	id = -1
 	if form.validate_on_submit():
-		nickname = current_user.nickname
+		user = current_user
+		nickname = user.nickname
 		user_query = User.query.filter_by(nickname=nickname)
-		if user_query.count() == 0:
-			user = User(nickname)
-			db.session.add(user)
-		else:
-			user = user_query.first()
 		group_name = form.group_name.data
 		group_query = Group.query.filter_by(name=group_name, user=user.id)
 		if group_query.count() > 0:
@@ -138,9 +134,6 @@ def join_group(id):
 
 	# ensure the user must be in the database to allow them to join
 	nickname = current_user.nickname
-	if nickname == None:
-		error_message = 'Please log in before to taking this action.'
-		return render_template('generic-error.html', error_message=error_message, back_url=url_for('web.index'))
 
 	active_user = current_user
 	# should not join the group more than once
@@ -225,6 +218,11 @@ def view_issue(issue_id):
 	[issue, members, estimates] = remaining_estimates(issue_id)
 	group = Group.query.get(issue.group_id)
 	is_owner = is_group_owner(group, current_user.nickname)
+	member = Membership.query.filter_by(group_id=issue.group_id, user_id=current_user.id)
+	if member.count() == 0:
+		error_message = 'You are not a voting member of this group. Please join the group to access this functionality.'
+		back_url = url_for('web.view_group', id=issue.group_id)
+		return render_template('generic-error.html', error_message=error_message, back_url=back_url), 403
 	return render_template('view-issue.html', issue=issue, members=members, estimates=estimates, is_owner=is_owner)
 
 def remaining_estimates(issue_id):
