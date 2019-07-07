@@ -1,6 +1,6 @@
 from flask import render_template, redirect, url_for, request
 from flask import Blueprint
-from forms.forms import NickNameForm, NewGroupForm, NewIssueForm, EstimateForm, LockEstimateForm
+from forms.forms import LoginForm, NewGroupForm, NewIssueForm, EstimateForm, LockEstimateForm
 from database.models import User, Group, Membership, Issue, Estimate
 from estimator import db
 from flask_login import login_required, login_user, logout_user, current_user
@@ -27,32 +27,31 @@ def index():
 			other_groups = Group.query.join(Membership).filter(Membership.user_id==user_id).all()
 			other_groups = [item for item in other_groups if item.user != user_id]
 
-	form = NickNameForm()
+	form = LoginForm()
 	new_group_form = NewGroupForm()
 	return render_template('index.html', form=form, groups=groups, new_group_form=new_group_form, other_groups=other_groups)
 
-def find_or_create_user(nickname):
-	user = User.query.filter_by(nickname=nickname).first()
-	if user == None:
-		user = User(nickname)
-		db.session.add(user)
-		db.session.commit()
+def find_user(email):
+	user = User.query.filter_by(email=email).first()
 	return user
 
 @web.route('/login', methods=['GET', 'POST'])
 def login():
-	form = NickNameForm()
+	form = LoginForm()
 	if form.validate_on_submit():
-		nickname = form.name.data
+		email = form.email.data
 		# this is where real authentication should be done
-		user = find_or_create_user(nickname)
-		login_user(user)
-		next = request.args.get('next')
-		if next is None or not next.startswith('/'):
-			next = url_for('web.index')
-		return redirect(next)
-		error_message = "Unable to log you in."
-		return render_template('generic-error.html', error_message=error_message, back_url=next), 400
+		user = find_user(email)
+		nickname = user.nickname
+		if user.verify_password(form.password.data):
+			login_user(user)
+			next = request.args.get('next')
+			if next is None or not next.startswith('/'):
+				next = url_for('web.index')
+			return redirect(next)
+		error_message = 'Unable to log you in.'
+		return render_template('generic-error.html', error_message=error_message, back_url=url_for('web.login')), 400
+
 	return render_template('login.html', form=form)
 
 @web.route('/creategroup', methods=['GET', 'POST'])

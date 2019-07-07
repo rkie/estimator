@@ -1,9 +1,10 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, IntegerField
-from wtforms.validators import DataRequired, NumberRange
+from wtforms import StringField, SubmitField, IntegerField, PasswordField
+from wtforms.validators import DataRequired, NumberRange, Email
 
-class NickNameForm(FlaskForm):
-    name = StringField('Please enter a nickname', validators=[DataRequired()])
+class LoginForm(FlaskForm):
+    email = StringField('Enter your username (email address)', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Login')
 
 class NewGroupForm(FlaskForm):
