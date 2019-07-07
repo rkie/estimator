@@ -9,7 +9,8 @@ def app():
 	with app.test_request_context():
 		db.create_all()
 		# create a user
-		user = User('default')
+		user = User('default', 'password')
+		user.email = 'default@test.com'
 		db.session.add(user)
 		db.session.flush()
 		# create a new group
@@ -22,9 +23,12 @@ def app():
 		# Make the user a member of the group
 		membership = Membership(test_group, user)
 		db.session.add(membership)
-
 		existing_group = Group('GroupAlreadyExists', user)
 		db.session.add(existing_group)
+		# Second user 
+		user = User('bob', 'password')
+		user.email = 'bob@test.com'
+		db.session.add(user)
 		db.session.commit()
 	return app
 

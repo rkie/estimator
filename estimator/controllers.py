@@ -42,6 +42,9 @@ def login():
 		email = form.email.data
 		# this is where real authentication should be done
 		user = find_user(email)
+		if user == None:
+			error_message = 'Unable to log you in, please check email and password carefully.'
+			return render_template('generic-error.html', error_message=error_message, back_url=url_for('web.login')), 401
 		nickname = user.nickname
 		if user.verify_password(form.password.data):
 			login_user(user)

@@ -37,7 +37,7 @@ def test_login_view(client):
 
 def login(client, nickname):
     return client.post('/login', data=dict(
-        name=nickname
+        email=f'{nickname}@test.com', password='password'
     ), follow_redirects=True)
 
 def test_login_logout_accepted(client):
@@ -194,3 +194,7 @@ def test_lock_estimate(client):
 	response = client.post('/issue/1/lock', follow_redirects=True, data=dict(estimate=13))
 	assert '13' in response.get_data(as_text=True)
 
+def test_unknown_user(client):
+	response = login(client, 'unknown')
+	assert response.status == '401 UNAUTHORIZED'
+	assert 'Unable to log you in, please check email and password carefully.' in response.get_data(as_text=True)
