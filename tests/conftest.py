@@ -9,8 +9,7 @@ def app():
 	with app.test_request_context():
 		db.create_all()
 		# create a user
-		user = User('default', 'password')
-		user.email = 'default@test.com'
+		user = User('default', 'default@test.com', 'password')
 		db.session.add(user)
 		db.session.flush()
 		# create a new group
@@ -26,8 +25,7 @@ def app():
 		existing_group = Group('GroupAlreadyExists', user)
 		db.session.add(existing_group)
 		# Second user 
-		user = User('bob', 'password')
-		user.email = 'bob@test.com'
+		user = User('bob', 'bob@test.com', 'password')
 		db.session.add(user)
 		db.session.commit()
 	return app

@@ -1,6 +1,6 @@
 from flask import render_template, redirect, url_for, request
 from flask import Blueprint
-from forms.forms import LoginForm, NewGroupForm, NewIssueForm, EstimateForm, LockEstimateForm
+from forms.forms import LoginForm, NewGroupForm, NewIssueForm, EstimateForm, LockEstimateForm, RegisterForm
 from database.models import User, Group, Membership, Issue, Estimate
 from estimator import db
 from flask_login import login_required, login_user, logout_user, current_user
@@ -323,6 +323,29 @@ def confirm_logout():
 		return render_template('confirm-logout.html')
 	logout_user()
 	return redirect(url_for('web.index'))
+
+@web.route('/register', methods=['GET', 'POST'])
+def register():
+	form = RegisterForm()
+	if request.method == 'GET':
+		return render_template('register.html', form=form)
+	if form.validate_on_submit():
+		# check user not already registered
+		user = User.query.filter_by(email=form.email.data)
+		if user.count() > 0:
+			error_message = 'This email address has already been registered.'
+			back_url = url_for('web.register')
+			return render_template('generic-error.html', error_message=error_message, back_url=back_url), 400
+		# add the new user
+		user = User(form.nickname.data, form.email.data, form.password.data)
+		db.session.add(user)
+		db.session.commit()
+		# log them in
+		login_user(user)
+		# redirect to home
+		return redirect(url_for('web.index'))
+	# return just the basic view
+	return render_template('register.html', form=form)
 
 @web.app_errorhandler(404)
 def wrong_page(err):

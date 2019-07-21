@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, IntegerField, PasswordField
-from wtforms.validators import DataRequired, NumberRange, Email
+from wtforms.validators import DataRequired, NumberRange, Email, EqualTo, Length
 
 class LoginForm(FlaskForm):
     email = StringField('Enter your username (email address)', validators=[DataRequired(), Email()])
@@ -23,3 +23,10 @@ class EstimateForm(FlaskForm):
 class LockEstimateForm(FlaskForm):
 	estimate = IntegerField('Would you like to modify the estimate?', validators=[DataRequired(), NumberRange(min=0, max=100)])
 	submit = SubmitField('Lock Estimate')
+
+class RegisterForm(FlaskForm):
+	email = StringField('Enter your email address', validators=[DataRequired(), Email()])
+	nickname = StringField('Enter a nickname', validators=[DataRequired()])
+	password = PasswordField('Password', validators=[DataRequired(), EqualTo('repeat_password', message='The passwords do not match.'), Length(min=16, message='Please use at least 16 characters.')])
+	repeat_password = PasswordField('Password', validators=[DataRequired()])
+	submit = SubmitField('Register')

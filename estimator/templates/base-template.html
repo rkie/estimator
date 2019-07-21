@@ -12,6 +12,9 @@
       {% if current_user.is_authenticated %}
       <li><a href="/">My Groups</a></li>
       <li><a href="/confirm-logout">Sign Out {{ current_user }}</a></li>
+      {% else %}
+      <li><a href="/login">Login</a></li>
+      <li><a href="/register">Register</a></li>
       {% endif %}
     </ul>
   </div>

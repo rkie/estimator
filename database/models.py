@@ -25,8 +25,9 @@ class User(UserMixin, db.Model):
 	email = db.Column(db.String(128))
 	password_hash = db.Column(db.String(128))
 
-	def __init__(self, nickname, password):
+	def __init__(self, nickname, email, password):
 		self.nickname = nickname
+		self.email = email
 		self.password = password
 
 	@property

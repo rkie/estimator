@@ -1,0 +1,19 @@
+{% extends "base-template.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% block content %}
+	<div class="container">
+		<h1>Register:</h1>
+		{{ wtf.quick_form(form) }}
+	</div>
+
+	<div class="container">
+		<h3>Password advice:</h3>
+		<ul>
+			<li>Do not share passwords between different sites or accounts</li>
+			<li>Choose a long, unique password, of at least 16 characters</li>
+			<li>Let your browser suggest and store a secure password (most modern browsers offer this functionality)</li>
+			<li>Do not make a password from guessable data such as your pet, a date of birth, or spouse’s name</li>
+			<li>Download a password manager to help securely store each unique password and lock it with a strong password</li>
+		</ul>
+	</div>
+{% endblock %}

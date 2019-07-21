@@ -33,7 +33,7 @@ def test_login_redirect(client, app):
 def test_login_view(client):
 	response = client.get('/login')
 	assert response.status == '200 OK'
-	assert "Enter a nickname" in response.get_data(as_text = True)
+	assert "Enter your username (email address)" in response.get_data(as_text = True)
 
 def login(client, nickname):
     return client.post('/login', data=dict(
@@ -198,3 +198,37 @@ def test_unknown_user(client):
 	response = login(client, 'unknown')
 	assert response.status == '401 UNAUTHORIZED'
 	assert 'Unable to log you in, please check email and password carefully.' in response.get_data(as_text=True)
+
+def register_dictionary(nickname, email, password='default acceptable password', repeat_password='default acceptable password'):
+	"""creates the dictionary that can be used for registration"""
+	return dict(nickname=nickname, email=email, password=password, repeat_password=repeat_password)
+
+def test_register_user_exists(client):
+	dict = register_dictionary('bob', 'bob@test.com')
+	response = client.post('/register', follow_redirects=True, data=dict)
+	assert 'This email address has already been registered.' in response.get_data(as_text=True)
+
+def test_register_email_not_valid(client):
+	dict = register_dictionary('bob', 'bob')
+	response = client.post('/register', follow_redirects=True, data=dict)
+	assert 'Invalid email address.' in response.get_data(as_text=True)
+
+def test_register_password_too_short(client):
+	dict = register_dictionary('newuser', 'newuser@test.com', password='too short', repeat_password='too short')
+	response = client.post('/register', follow_redirects=True, data=dict)
+	assert 'Please use at least 16 characters.' in response.get_data(as_text=True)
+
+def test_register_passwords_dont_match(client):
+	dict = register_dictionary('newuser', 'newuser@test.com', repeat_password='different password')
+	response = client.post('/register', follow_redirects=True, data=dict)
+	assert 'The passwords do not match.' in response.get_data(as_text=True)
+
+def test_register_view(client):
+	response = client.get('/register')
+	assert 'Enter a nickname' in response.get_data(as_text=True)
+
+def test_register_successful(client):
+	dict = register_dictionary('newuser', 'newuser@test.com')
+	response = client.post('/register', follow_redirects=True, data=dict)
+	assert 'Let’s Estimate Something' in response.get_data(as_text=True)
+

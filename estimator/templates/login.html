@@ -2,7 +2,11 @@
 {% import "bootstrap/wtf.html" as wtf %}
 {% block content %}
 	<div class="container">
-		<h1>Enter a nickname to login:</h1>
+		<h1>Login</h1>
 		{{ wtf.quick_form(form, action="/login") }}
+	</div>
+	<div class="container">
+		<h3>If you have not signed up...</h3>
+		Click <a href="/register">here to register</a>.
 	</div>
 {% endblock %}
